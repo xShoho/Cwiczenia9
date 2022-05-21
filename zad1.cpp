@@ -10,18 +10,36 @@ public:
 	virtual string profity() { return "-"; } //deklaracja metody jako wirtualnej
 };
 
-class Praktykant :public Stanowisko {
+class Praktykant: public Stanowisko {
 public:
 	Praktykant() {}
 	string stanowisko() { return "praktykant"; }
 	string profity() { return "brak profitow"; }
 };
 
-class Specjalista :public Stanowisko {
+class Manager: public Stanowisko {
+private:
+	string miejsce_parkingowe;
+public:
+	Manager(string miejsce_parkingowe): miejsce_parkingowe(miejsce_parkingowe) {}
+	string stanowisko() { return "Manager"; }
+	string profity() { return miejsce_parkingowe; }
+};
+
+class Helper: public Stanowisko {
+private:
+	string multisport;
+public:
+	Helper(string multisport): multisport(multisport) {}
+	string stanowisko() { return "Helper"; }
+	string profity() { return multisport; }
+};
+
+class Specjalista: public Stanowisko {
 private:
 	string samochod;
 public:
-	Specjalista(string samochod) :samochod(samochod) {}
+	Specjalista(string samochod): samochod(samochod) {}
 	string stanowisko() { return "specjalista"; }
 	string profity() { return samochod; }
 };
@@ -47,5 +65,9 @@ int main() {
 	p.przydziel_stanowisko(new Praktykant);
 	cout << endl << p.dane() << ", " << p.pokaz_stanowisko();
 	p.przydziel_stanowisko(new Specjalista("Toyota auris"));
+	cout << endl << p.dane() << ", " << p.pokaz_stanowisko();
+	p.przydziel_stanowisko(new Helper("Pelen zakres"));
+	cout << endl << p.dane() << ", " << p.pokaz_stanowisko();
+	p.przydziel_stanowisko(new Manager("B32"));
 	cout << endl << p.dane() << ", " << p.pokaz_stanowisko();
 }

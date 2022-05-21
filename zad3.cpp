@@ -2,24 +2,43 @@
 #include<iostream>
 #include<string>
 #include<vector>
+
 using namespace std;
+
 class Produkt {//klasa abstrakcyjna
 public:
 	virtual string opis() = 0;//metoda czysto wirtualna - abstrakcyjna
+	virtual float daj_cene() = 0;
 	virtual ~Produkt(){}
 };
-class Monitor :public Produkt { //dziedziczenie
+
+class Monitor: public Produkt { //dziedziczenie
+	float cena;
 	float przekatna;
 public:
-	string opis() { return "Monitor, przekatna " + to_string(przekatna); }
-	Monitor(float przekatna) :przekatna(przekatna) {}
+	string opis() { return "Monitor, przekatna " + to_string(przekatna) + " cena: " + to_string(cena) + "zl"; }
+	float daj_cene() { return cena; }
+	Monitor(float przekatna, float cena): przekatna(przekatna), cena(cena) {}
 };
-class Dysk :public Produkt {
+
+class Dysk: public Produkt {
+	float cena;
 	float pojemnosc;
 public:
-	string opis() { return "Dysk, pojemnosc " + to_string(pojemnosc); }
-	Dysk(float pojemnosc) :pojemnosc(pojemnosc) {}
+	string opis() { return "Dysk, pojemnosc " + to_string(pojemnosc) + " cena: " + to_string(cena) + "zl"; }
+	float daj_cene() { return cena; }
+	Dysk(float pojemnosc, float cena): pojemnosc(pojemnosc), cena(cena) {}
 };
+
+class Procesor: public Produkt {
+	float cena;
+	float taktowanie;
+public:
+	string opis() { return "Procesor, taktowanie " + to_string(taktowanie) + "GHz, cena: " + to_string(cena) + "zl"; }
+	float daj_cene() { return cena; }
+	Procesor(float taktowanie, float cena): taktowanie(taktowanie), cena(cena) {}
+};
+
 class Magazyn {
 	vector<pair<Produkt*,int>> produkty; //agregacja
 public:
@@ -50,22 +69,32 @@ public:
 		return nullptr;
 	}
 };
+
 class PozycjaZamowienia {
-	Produkt*produkt;//odwolanie do Produktu, wskaznik typu Produkt (klasy bazowej) - bedzie wskazywal obiekty konkretnych podklas Produktu  
+	Produkt *produkt;//odwolanie do Produktu, wskaznik typu Produkt (klasy bazowej) - bedzie wskazywal obiekty konkretnych podklas Produktu  
 	int ilosc;
+	float cena;
 public:
-	PozycjaZamowienia(Produkt *produkt, int ilosc): produkt(produkt), ilosc(ilosc) {}
+	PozycjaZamowienia(Produkt *produkt, int ilosc): produkt(produkt), ilosc(ilosc) {
+		cena = produkt->daj_cene() * ilosc;
+	}
 	string opis() { 
 	//wywolanie metody pokaz_opis() dla obiektu klasy pochodnej za pomoca wskaznika typu klasy bazowej Produkt
 	//wywolanie to jest polimorficzne - mozliwe dzieki zdefiniowaniu metody pokaz_opis() jako wirtualnej w klasie bazowej Produkt
 	//kod jest ten sam niezaleznie od tego ktorej klasy pochodnej jest obiekt
 	return produkt->opis() + ", ilosc " + to_string(ilosc); }
+	float daj_cene() { return cena; }
 };
+
 class Zamowienie {
 	vector<PozycjaZamowienia*> pozycje_zamowienia;
+	float cena;
 public:
+	Zamowienie() { cena = 0; }
 	void dodaj(Produkt* produkt, int ilosc) {
-		pozycje_zamowienia.push_back(new PozycjaZamowienia(produkt, ilosc));
+		PozycjaZamowienia pozycja(produkt, ilosc);
+		cena += pozycja.daj_cene();
+		pozycje_zamowienia.push_back(&pozycja);
 	}
 	void drukuj() {
 		int nr = 1;
@@ -74,13 +103,40 @@ public:
 			cout << endl << nr++ << ": " << pz->opis();
 		}
 	}
+
+	string opis() { return "Pozycje zamowienia: " + to_string(pozycje_zamowienia.size()) + " cena: " + to_string(cena) + "zl"; }
+};
+
+class Klient {
+	string imie;
+	string nazwisko;
+	Zamowienie *zamowienie;
+public:
+	Klient(string imie, string nazwisko, Zamowienie* zamowienie): imie(imie), nazwisko(nazwisko), zamowienie(zamowienie) {}
+	string opis() { return "Imie: " + imie + " Nazwisko: " + nazwisko + " zamowienie: " + zamowienie->opis(); }
+};
+
+class Klienci {
+	vector<Klient*> klienci;
+public:
+	void dodaj(Klient* klient) {
+		klienci.push_back(klient);
+	}
+
+	void drukuj() {
+		int nr = 1;
+		cout << endl << endl << "Klienci";
+		for(auto & k : klienci) {
+			cout << endl << nr++ << ": " << k->opis();
+		}
+	}
 };
 
 int main() {
 	Magazyn magazyn;
-	magazyn.dodaj(new Dysk(256), 25);
-	magazyn.dodaj(new Dysk(512), 30);
-	magazyn.dodaj(new Monitor(22), 15);
+	magazyn.dodaj(new Dysk(256, 200), 25);
+	magazyn.dodaj(new Dysk(512, 500), 30);
+	magazyn.dodaj(new Monitor(22, 650), 15);
 	magazyn.pokaz();
 	Zamowienie zamowienie;
 	cout << endl << endl << "Tworzenie zamowienia\nWybierz produkt i jego ilosc (lub wpisz z, aby zakonczyc): ";
